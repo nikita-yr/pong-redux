@@ -5,36 +5,36 @@ import math
 
 pygame.init()
 
-# Automatyczne wykrywanie rozdzielczości ekranu
+# Automatically detect screen resolution
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 FPS = 60
 
-# Kolory
+# Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-# Marginesy
-TOP_MARGIN = int(HEIGHT * 0.1) + 3  # 10% wysokości ekranu + 3 piksele
-LINE_MARGIN = int(WIDTH * 0.03)  # 3% szerokości ekranu
+# Margins
+TOP_MARGIN = int(HEIGHT * 0.1) + 3  # 10% of screen height + 3 pixels
+LINE_MARGIN = int(WIDTH * 0.03)  # 3% of screen width
 
-# Klasa dla piłki
+# Ball class
 class Ball:
     def __init__(self):
-        self.size = int(WIDTH * 0.02)  # Rozmiar piłki
-        self.base_speed = 300  # Podstawowa prędkość piłki w pikselach na sekundę
+        self.size = int(WIDTH * 0.02)  # Ball size
+        self.base_speed = 300  # Base speed in pixels per second
         self.rect = pygame.Rect(WIDTH // 2 - self.size // 2, HEIGHT // 2 - self.size // 2, self.size, self.size)
         self.speed_x = random.choice([-self.base_speed, self.base_speed])
         self.speed_y = random.choice([-self.base_speed, self.base_speed])
-        self.hit_count = 0  # Licznik uderzeń rakietką
+        self.hit_count = 0  # Paddle hit counter
 
-        self.wobble_intensity = 100  # Maksymalne odchylenie drżenia (piksele na sekundę)
-        self.wobble_decay = 0.9  # Zanik drżenia
-        self.wobble_x = 0  # Bieżący składnik drżenia po osi X
-        self.wobble_y = 0  # Bieżący składnik drżenia po osi Y
+        self.wobble_intensity = 100  # Maximum wobble effect (pixels per second)
+        self.wobble_decay = 0.9  # Wobble decay factor
+        self.wobble_x = 0  # Current wobble component on X axis
+        self.wobble_y = 0  # Current wobble component on Y axis
 
     def move(self, delta_time):
-        max_wobble = self.wobble_intensity * (1 + self.hit_count * 0.1)  # Wzrost efektu drżenia wraz ze wzrostem prędkości
+        max_wobble = self.wobble_intensity * (1 + self.hit_count * 0.1)  # Increase wobble effect with speed
         self.wobble_x += random.uniform(-max_wobble, max_wobble) * delta_time
         self.wobble_y += random.uniform(-max_wobble, max_wobble) * delta_time
         self.wobble_x *= self.wobble_decay
@@ -43,7 +43,7 @@ class Ball:
         self.rect.x += (self.speed_x + self.wobble_x) * delta_time
         self.rect.y += (self.speed_y + self.wobble_y) * delta_time
 
-        # Odbicie od krawędzi pola gry
+        # Bounce off the game area borders
         if self.rect.top <= game_area.top or self.rect.bottom >= game_area.bottom:
             self.speed_y *= -1
 
@@ -66,8 +66,7 @@ class Ball:
         self.speed_x *= increase_factor
         self.speed_y *= increase_factor
 
-
-# Klasa dla rakietki
+# Paddle class
 class Paddle:
     def __init__(self, x, is_ai=False):
         self.width = int(WIDTH * 0.005)
@@ -117,15 +116,15 @@ class Paddle:
         if self.rect.bottom > game_area.bottom:
             self.rect.bottom = game_area.bottom
 
-# Obszar gry
+# Game area
 game_area = pygame.Rect(
     LINE_MARGIN,
-    TOP_MARGIN,  # Nowy margines przesunięty o 3 piksele w dół
+    TOP_MARGIN,  # New margin shifted 3 pixels down
     WIDTH - LINE_MARGIN * 2,
     HEIGHT - TOP_MARGIN - LINE_MARGIN + 38
 )
 
-# Główna funkcja
+# Main function
 def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
     pygame.display.set_caption("Pong")
@@ -140,7 +139,7 @@ def main():
     player_score = 0
     opponent_score = 0
 
-    # Ładowanie czcionki
+    # Load font
     font_size = int(WIDTH * 0.05)
     font_path = pygame.font.match_font("arialbold")
     font = pygame.font.Font(font_path, font_size)
@@ -156,10 +155,9 @@ def main():
         if keys[pygame.K_ESCAPE]:
             running = False
 
-        delta_time = clock.get_time() / 1000  # Czas między klatkami w sekundach
+        delta_time = clock.get_time() / 1000  # Time between frames in seconds
 
         ball.move(delta_time)
-
         left_paddle.move_with_ai(ball, delta_time)
         mouse_y = pygame.mouse.get_pos()[1]
         right_paddle.move_with_mouse(mouse_y)
@@ -174,40 +172,11 @@ def main():
             ball.speed_y += (ball.rect.centery - right_paddle.rect.centery) // 10
             ball.increase_speed()
 
-        if ball.rect.left <= game_area.left:
-            opponent_score += 1
-            ball.reset()
-
-        elif ball.rect.right >= game_area.right:
-            player_score += 1
-            ball.reset()
-
         screen.fill(BLACK)
-
         pygame.draw.rect(screen, WHITE, game_area, 2)
-
         pygame.draw.rect(screen, WHITE, ball.rect)
         pygame.draw.rect(screen, WHITE, left_paddle.rect)
         pygame.draw.rect(screen, WHITE, right_paddle.rect)
-
-        score_text = font.render(f"{player_score} : {opponent_score}", True, WHITE)
-        bot_text = font.render("BOT", True, WHITE)
-        player_text = font.render("PLAYER", True, WHITE)
-
-        score_x = WIDTH // 2 - score_text.get_width() // 2
-        score_y = int(TOP_MARGIN * 0.5)
-        bot_x = LINE_MARGIN
-        bot_y = int(TOP_MARGIN * 0.5)
-        player_x = WIDTH - LINE_MARGIN - player_text.get_width()
-        player_y = int(TOP_MARGIN * 0.5)
-
-        screen.blit(score_text, (score_x, score_y))
-        screen.blit(bot_text, (bot_x, bot_y))
-        screen.blit(player_text, (player_x, player_y))
-
-        for y in range(game_area.top, game_area.bottom, 20):
-            pygame.draw.line(screen, WHITE, (WIDTH // 2, y), (WIDTH // 2, y + 10), 2)
-
         pygame.display.flip()
         clock.tick(FPS)
 
