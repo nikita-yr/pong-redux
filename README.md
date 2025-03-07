@@ -8,4 +8,4 @@ Realistic Ball Physics – Includes wobble effects and speed scaling for added u
 Mouse Controls – Move your paddle seamlessly using the mouse.
 Full-Screen Mode – Automatically adjusts to your screen resolution for an immersive experience.
 
-Welcome to the code . Hope you enjoy playing it as much as I did making it!
+Welcome to the code. Hope you enjoy playing it as much as I did making it!
